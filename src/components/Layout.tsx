@@ -58,7 +58,7 @@ function NavList({ tampilkanLabel }: { tampilkanLabel: boolean }) {
 }
 
 export function Layout({ children }: { children: ReactNode }) {
-  const { error, tolakError, readOnly, terkunci, terbukaKunci, hashLihat, bukaKunci } = useFinance();
+  const { error, tolakError, readOnly, terkunci, terbukaKunci, hashLihat, bukaKunci, kunciSesi } = useFinance();
 
   useEffect(() => {
     const cegahKlikKanan = (e: MouseEvent) => e.preventDefault();
@@ -123,10 +123,19 @@ export function Layout({ children }: { children: ReactNode }) {
                   Pengunjung
                 </button>
               ) : terkunci && terbukaKunci && !hashLihat ? (
-                <span className="flex items-center gap-1.5 rounded-full border border-brand/30 bg-brand-soft px-3 py-1.5 text-xs font-bold text-brand-deep">
-                  <IKON_UI.shield className="h-3.5 w-3.5" aria-hidden="true" />
-                  Pengelola
-                </span>
+                <>
+                  <span className="flex items-center gap-1.5 rounded-full border border-brand/30 bg-brand-soft px-3 py-1.5 text-xs font-bold text-brand-deep">
+                    <IKON_UI.shield className="h-3.5 w-3.5" aria-hidden="true" />
+                    Pengelola
+                  </span>
+                  <button
+                    type="button"
+                    onClick={kunciSesi}
+                    className="rounded-full border border-line bg-card px-3 py-1.5 text-xs font-bold text-mute transition hover:border-expense/40 hover:text-expense"
+                  >
+                    Keluar
+                  </button>
+                </>
               ) : null}
             </div>
           </div>
