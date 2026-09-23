@@ -205,9 +205,9 @@ export function Dashboard() {
             <h2 className="text-sm font-bold text-ink">Transaksi terbaru</h2>
             <p className="mt-0.5 text-xs text-mute">Enam catatan terakhir yang masuk.</p>
           </div>
-          <button type="button" className="btn-ghost" onClick={() => navigasi("transaksi")}>
+          <button type="button" className="btn-ghost px-3.5 py-1.5 text-xs" onClick={() => navigasi("transaksi")}>
             Lihat semua
-            <IKON_UI.panah className="h-4 w-4" aria-hidden="true" />
+            <IKON_UI.panah className="h-3.5 w-3.5" aria-hidden="true" />
           </button>
         </div>
 
