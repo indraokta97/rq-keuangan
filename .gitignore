@@ -26,4 +26,4 @@ dist-ssr
 # Env & database
 .env*.local.env
 .vercel
-
+.env*.local

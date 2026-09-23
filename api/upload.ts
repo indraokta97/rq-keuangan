@@ -35,7 +35,7 @@ export async function POST(req: Request): Promise<Response> {
 
   try {
     const nama = `bukti/${Date.now()}-${Math.random().toString(36).slice(2, 10)}.webp`;
-    const { url } = await put(nama, new Uint8Array(await file.arrayBuffer()), {
+    const { url } = await put(nama, Buffer.from(await file.arrayBuffer()), {
       access: "public",
       contentType: "image/webp",
       addRandomSuffix: true,
