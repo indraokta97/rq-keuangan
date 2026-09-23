@@ -37,7 +37,7 @@ export async function pastikanTabel(): Promise<boolean> {
       id TEXT PRIMARY KEY,
       tipe TEXT NOT NULL,
       kategori_id TEXT REFERENCES kategori(id) ON DELETE SET NULL,
-      jumlah INTEGER NOT NULL,
+      jumlah BIGINT NOT NULL,
       tanggal TEXT NOT NULL,
       keterangan TEXT NOT NULL DEFAULT '',
       referensi TEXT NOT NULL DEFAULT '',
@@ -48,6 +48,9 @@ export async function pastikanTabel(): Promise<boolean> {
   `;
   await sql`
     ALTER TABLE transaksi ADD COLUMN IF NOT EXISTS bukti TEXT NOT NULL DEFAULT ''
+  `;
+  await sql`
+    ALTER TABLE transaksi ALTER COLUMN jumlah TYPE BIGINT
   `;
   await sql`
     CREATE TABLE IF NOT EXISTS app_settings (
