@@ -70,9 +70,14 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
   const terbukaKunci = mode === "postgres" ? punyaToken : !terkunci || sesi;
   const readOnly = hashLihat || (terkunci && !terbukaKunci);
 
-  const refresh = useCallback(async (a: FinanceAPI) => {
+  const normData = (d: AppData): AppData => ({
+  ...d,
+  transaksi: d.transaksi.map((t) => ({ ...t, jumlah: Number(t.jumlah) || 0 })),
+});
+
+const refresh = useCallback(async (a: FinanceAPI) => {
     const d = await a.getAll();
-    setData(d);
+    setData(d.transaksi.length > 0 ? normData(d) : d);
   }, []);
 
   useEffect(() => {
@@ -84,7 +89,7 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
         setApi(a);
         setMode(a.mode);
         const d = await a.getAll();
-        if (aktif) setData(d);
+        if (aktif) setData(d.transaksi.length > 0 ? normData(d) : d);
       } catch (e) {
         if (aktif) setError(e instanceof Error ? e.message : "Gagal memuat data");
       }

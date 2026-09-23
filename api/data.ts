@@ -7,7 +7,7 @@ export async function GET(): Promise<Response> {
   try {
     await pastikanTabel();
 
-    const [kategori, transaksi, pengaturan] = await Promise.all([
+    const [kat, trx, pengaturan] = await Promise.all([
       sql`SELECT id, nama, tipe, warna, ikon, urutan FROM kategori ORDER BY urutan, nama`,
       sql`
         SELECT id, tipe, kategori_id AS "kategoriId", jumlah, tanggal, keterangan, referensi, bukti,
@@ -19,8 +19,8 @@ export async function GET(): Promise<Response> {
 
     const nilaiAwal = pengaturan.pengaturan as Record<string, unknown>;
     return resJson({
-      kategori: kategori as unknown[],
-      transaksi: transaksi as unknown[],
+      kategori: kat as unknown[],
+      transaksi: (trx as { jumlah: unknown }[]).map((r) => ({ ...r, jumlah: Number(r.jumlah) })),
       pengaturan: {
         namaOrganisasi: String(nilaiAwal?.namaOrganisasi ?? "Rumah Quran UGM"),
         saldoAwal: Number(nilaiAwal?.saldoAwal ?? 0),
