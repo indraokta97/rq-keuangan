@@ -20,8 +20,8 @@ interface AppDataPayload {
 }
 
 export async function POST(req: Request): Promise<Response> {
-  if (!siapPakai()) return resErr("Database belum dihubungkan", 503);
   if (!tokenSah(req)) return resTolak();
+  if (!siapPakai()) return resErr("Database belum dihubungkan", 503);
   const d = (await req.json().catch(() => ({}))) as AppDataPayload;
   if (!Array.isArray(d.kategori) || !Array.isArray(d.transaksi)) {
     return resErr("Isi backup tidak lengkap", 400);

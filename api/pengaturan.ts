@@ -12,8 +12,8 @@ interface PengaturanPayload {
 }
 
 export async function PUT(req: Request): Promise<Response> {
-  if (!siapPakai()) return resErr("Database belum dihubungkan", 503);
   if (!tokenSah(req)) return resTolak();
+  if (!siapPakai()) return resErr("Database belum dihubungkan", 503);
   const p = (await req.json().catch(() => ({}))) as PengaturanPayload;
 
   try {

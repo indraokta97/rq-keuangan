@@ -22,10 +22,10 @@ function capKunci(req: Request): number | null {
 }
 
 export async function POST(req: Request): Promise<Response> {
-  if (!siapPakai()) return resErr("Database belum dihubungkan", 503);
   if (!process.env.RQ_ADMIN_TOKEN) {
     return resErr("Akses pengelola belum dikonfigurasi. Tambahkan variabel RQ_ADMIN_TOKEN lalu redeploy.", 501);
   }
+  if (!siapPakai()) return resErr("Database belum dihubungkan", 503);
 
   const sisa = capKunci(req);
   if (sisa !== null) return resJson({ error: `Terlalu banyak percobaan. Coba lagi dalam ${sisa} detik.` }, 429);
