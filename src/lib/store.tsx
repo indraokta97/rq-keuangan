@@ -1,16 +1,18 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import type { AppData, Kategori, Pengaturan, Transaksi, TipeTransaksi } from "./types";
 import {
+  ambilToken,
   buatAPI,
   buatKategoriBaru,
   buatTransaksiBaru,
+  hapusToken,
   type FinanceAPI,
   type ModePenyimpanan,
 } from "./backend";
 import { hasilkanDataContoh } from "./sample";
 import { KATEGORI_DEFAULT } from "./presets";
 import { modeLihat } from "./router";
-import { KUNCI_SESI, hashSandi } from "./format";
+import { KUNCI_SESI } from "./format";
 
 interface FinanceContextValue {
   mode: ModePenyimpanan;
@@ -53,6 +55,7 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
   const [mode, setMode] = useState<ModePenyimpanan>("lokal");
   const [hashLihat, setHashLihat] = useState<boolean>(() => modeLihat());
   const [sesi, setSesi] = useState<boolean>(() => localStorage.getItem(KUNCI_SESI) === "1");
+  const [punyaToken, setPunyaToken] = useState<boolean>(() => ambilToken() !== null);
   const [data, setData] = useState<AppData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [menyimpan, setMenyimpan] = useState(false);
@@ -63,8 +66,9 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener("hashchange", onHash);
   }, []);
 
-  const terkunci = data ? (data.pengaturan.kataSandi || "").length > 0 : false;
-  const readOnly = hashLihat || (terkunci && !sesi);
+  const terkunci = mode === "postgres" ? true : data ? (data.pengaturan.kataSandi || "").length > 0 : false;
+  const terbukaKunci = mode === "postgres" ? punyaToken : !terkunci || sesi;
+  const readOnly = hashLihat || (terkunci && !terbukaKunci);
 
   const refresh = useCallback(async (a: FinanceAPI) => {
     const d = await a.getAll();
@@ -120,21 +124,25 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
       ready: !!data,
       readOnly,
       terkunci,
-      terbukaKunci: !terkunci || sesi,
+      terbukaKunci,
       hashLihat,
       bukaKunci: async (sandi) => {
-        const simpan = data.pengaturan.kataSandi || "";
-        const cocok = await hashSandi(sandi);
-        if (simpan && cocok === simpan) {
-          localStorage.setItem(KUNCI_SESI, "1");
-          setSesi(true);
-          return true;
+        if (!api) return false;
+        const ok = await api.login(sandi);
+        if (ok) {
+          if (mode === "postgres") setPunyaToken(true);
+          else {
+            localStorage.setItem(KUNCI_SESI, "1");
+            setSesi(true);
+          }
         }
-        return false;
+        return ok;
       },
       kunciSesi: () => {
         localStorage.removeItem(KUNCI_SESI);
+        hapusToken();
         setSesi(false);
+        setPunyaToken(false);
       },
       error,
       tolakError: () => setError(null),
@@ -166,7 +174,7 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
           })
         ),
     };
-  }, [data, api, mode, error, jalan, menyimpan, readOnly, terkunci, sesi, hashLihat]);
+  }, [data, api, mode, error, jalan, menyimpan, readOnly, terkunci, terbukaKunci, hashLihat]);
 
   if (!value) {
     return (

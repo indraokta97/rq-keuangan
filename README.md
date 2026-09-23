@@ -12,7 +12,7 @@ Selesai dibangun dan terpasang di `C:\laragon\www\rq-keuangan` (project React te
 - Kelola kategori sendiri (warna + ikon pilihan)
 - Dashboard: saldo kas, rekap bulan berjalan, grafik arus kas 6 bulan, donat pengeluaran per kategori, transaksi terbaru
 - Laporan rekap bulanan/tahunan + ekspor ke file CSV (buka dengan Excel/Google Sheets)
-- **Keamanan & akses**: pengunjung yang membuka aplikasi **hanya bisa melihat**; mengelola (tambah/ubah/hapus) butuh **masuk dengan kata sandi pengelola**
+- **Keamanan & akses**: pengunjung yang membuka aplikasi **hanya bisa melihat**; di mode lokal mengelola butuh **kata sandi pengelola**, dan di mode cloud (Postgres) semua permintaan ubah/ubah/hapus divalidasi server dengan **token rahasia** (`RQ_ADMIN_TOKEN`)
 - **Tampilan pengunjung (read-only)**: tautan khusus `#/lihat` yang juga hanya bisa melihat, aman dibagikan ke pengurus, donatur, atau publik
 - Backup & restore data lewat file JSON
 - Pengaturan: nama organisasi, saldo awal, tahun mulai, catatan bulanan
@@ -51,12 +51,14 @@ Tanpa `DATABASE_URL`, aplikasi otomatis memakai **localStorage** jadi semua fitu
 ```
 api/                      serverless functions Vercel (Postgres/Neon)
   _lib/db.ts              koneksi Neon + buat tabel otomatis
-  health.ts / data.ts     cek backend & ambil seluruh data
-  transaksi.ts            CRUD transaksi
-  upload.ts               unggah foto bukti ke Vercel Blob (butuh BLOB_READ_WRITE_TOKEN)
-  kategori.ts             CRUD kategori
-  pengaturan.ts           simpan pengaturan
-  backup.ts               restore seluruh data (tempat muat data contoh)
+  _lib/auth.ts            validasi token admin + verifikasi kata sandi (PBKDF2)
+  health.ts / data.ts     cek backend & ambil seluruh data (publik/read)
+  auth.ts                 login pengelola di server (rate-limited)
+  transaksi.ts            CRUD transaksi (wajib token)
+  upload.ts               unggah foto bukti ke Vercel Blob (wajib token)
+  kategori.ts             CRUD kategori (wajib token)
+  pengaturan.ts           simpan pengaturan (wajib token)
+  backup.ts               restore seluruh data (wajib token)
 src/
   lib/                    types, format, theme, presets, sample, analytics, backend, router, store, upload (konversi WebP)
   components/             ui, layout, charts, FormTransaksi, icons
@@ -78,30 +80,40 @@ public/
    - Di **Settings → Environment Variables**, tambahkan `DATABASE_URL` berisi connection string tersebut. (Vercel juga menyediakan `POSTGRES_URL` — dipakai otomatis jika `DATABASE_URL` tidak ada.)
    - **Redeploy** setelah menambah env variable.
 
-3. **Verifikasi mode Postgres**: buka app → halaman Pengaturan → indikator penyimpanan harus menunjukkan "Tersimpan di cloud · Neon Postgres".
+3. **Aktifkan keamanan cloud (WAJIB sebelum dipakai bersama)**:
+   - Di **Settings → Environment Variables**, tambahkan **`RQ_ADMIN_TOKEN`** berisi nilai acak panjang, mis. `openssl rand -hex 32`.
+   - Variabel ini adalah kunci rahasia di sisi server. Tanpa variabel ini, semua permintaan menambah/mengubah/menghapus, restore backup, dan upload foto dari cloud akan **ditolak (401)**.
+   - **Redeploy** setelah menambah env variable.
 
-4. **Aktifkan upload foto bukti (Vercel Blob)** — opsional tapi disarankan:
+4. **Verifikasi mode Postgres**: buka app → halaman Pengaturan → indikator penyimpanan harus menunjukkan "Tersimpan di cloud · Neon Postgres".
+
+5. **Aktifkan upload foto bukti (Vercel Blob)** — opsional tapi disarankan:
    - Di dashboard Vercel: **Storage → Create Database → Blob** (tier gratis ±10 GB, cukup untuk ribuan kwitansi WebP).
    - Tambahkan environment variable **`BLOB_READ_WRITE_TOKEN`** (disalin dari halaman Blob store) → **Redeploy**.
-   - Tanpa token inim, form catatan tetap berfungsi; kolom foto hanya menampilkan peringatan "Upload belum diaktifkan".
+   - Tanpa token ini, form catatan tetap berfungsi; kolom foto hanya menampilkan peringatan "Upload belum diaktifkan".
 
-5. **Isi data**: tekan **"Muat data contoh"** di halaman Pengaturan (atau import backup JSON). Tabel database dibuat otomatis saat pertama kali data diakses.
+6. **Isi data**: tekan **"Muat data contoh"** di halaman Pengaturan (atau import backup JSON). Tabel database dibuat otomatis saat pertama kali data diakses.
 
 > Catatan: mode penyimpanan terdeteksi saat app pertama kali dibuka dan disimpan di localStorage. Jika sudah pernah dibuka tanpa database, hapus data browser atau kunci `rqk::mode` dari localStorage.
 > (Update: sekarang probe `/api/health` selalu dilakukan ulang setiap load; kunci mode hanya di-cache untuk mode `postgres`.)
 
 ## Keamanan & akses pengelola
 
-Secara bawaan, siapa pun yang membuka aplikasi **hanya bisa melihat** data (rekap, grafik, laporan). Untuk menambah/mengubah/menghapus, pengelola harus **masuk dengan kata sandi**:
+Siapa pun yang membuka aplikasi **hanya bisa melihat** data (rekap, grafik, laporan). Perubahan data terlindungi dua lapis:
 
-- Pasang kata sandi pertama kali di **Pengaturan → Keamanan & masuk** (min. 4 karakter).
-- Kata sandi disimpan sebagai **hash SHA-256**, bukan teks asli (localStorage lokal / `app_settings` pada Postgres).
-- Setelah kata sandi terpasang, browser lain otomatis tampil sebagai pengunjung (lihat saja). Klik **"Masuk pengelola"** pada banner, masukkan kata sandi → sesi aktif selama tersimpan di browser itu.
-- **"Kunci sesi sekarang"** (di Pengaturan) mengembalikan browser ke tampilan pengunjung.
-- Menghapus kunci: kosongkan kolom kata sandi di Pengaturan → Simpan.
+- **Mode lokal (localStorage)**: kata sandi pengelola (hash **PBKDF2-SHA256** ber-salt) memisahkan pengunjung vs pengelola pada browser yang sama.
+- **Mode cloud (Postgres)**: validasi dilakukan **di server** — endpoint tulis (`transaksi`, `kategori`, `pengaturan`, `backup`, `upload`) menolak tanpa header `Authorization: Bearer <RQ_ADMIN_TOKEN>`. Login lewat `/api/auth` memverifikasi kata sandi di server (maks. 5 percobaan per 15 menit) lalu menyerahkan token tersebut.
+
+Langkah penggunaan:
+
+- Tambahkan env `RQ_ADMIN_TOKEN` di Vercel (lihat langkah deploy) sebelum dipakai bersama.
+- Pasang kata sandi pertama kali di **Pengaturan → Keamanan & masuk** (min. 4 karakter). Saat belum ada kata sandi tersimpan, `/api/auth` memberi akses "bootstrap" sekali agar pemilik pertama bisa masuk.
+- Di cloud, browser yang belum login tampil sebagai pengunjung. Klik **"Masuk pengelola"**, masukkan kata sandi → sesi aktif.
+- **"Kunci sesi sekarang"** (di Pengaturan) menghapus token dan kembali ke tampilan pengunjung.
+- Menghapus kunci: kosongkan kolom kata sandi → Simpan.
 - Tautan `#/lihat` tetap murni tampilan bahkan bagi pengelola.
 
-> Catatan keamanan: kunci ini mencegah pengubahan oleh pihak luar dan kelalaian — bukan pengganti keamanan tingkat perbankan. Data memang terbuka untuk dilihat publik, sesuai kebutuhan lembaga.
+Security headers (`X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, `Content-Security-Policy`) dipasang lewat `vercel.json`. Catatan: data memang terbuka untuk dilihat publik sesuai kebutuhan lembaga — keamanan difokuskan pada **melindungi data dari pengubahan/penghapusan**.
 
 Nama halaman dan seluruh teks UI memakai bahasa Indonesia.
 

@@ -1,11 +1,32 @@
 import type { AppData, Kategori, Pengaturan, Transaksi, TipeTransaksi } from "./types";
 import { KATEGORI_DEFAULT } from "./presets";
-import { uid } from "./format";
+import { cocokKataSandi, uid } from "./format";
 
 export type ModePenyimpanan = "lokal" | "postgres";
 
 const KUNCI_LOKAL = "rqk::data";
 const KUNCI_MODE = "rqk::mode";
+export const KUNCI_TOKEN = "rqk::token";
+
+export function ambilToken(): string | null {
+  try {
+    return localStorage.getItem(KUNCI_TOKEN);
+  } catch {
+    return null;
+  }
+}
+
+function simpanToken(t: string): void {
+  localStorage.setItem(KUNCI_TOKEN, t);
+}
+
+export function hapusToken(): void {
+  try {
+    localStorage.removeItem(KUNCI_TOKEN);
+  } catch {
+    // abaikan
+  }
+}
 
 const PENGATURAN_DEFAULT: Pengaturan = {
   namaOrganisasi: "Rumah Quran UGM",
@@ -39,6 +60,7 @@ async function apiFetch(path: string, init?: RequestInit): Promise<unknown> {
 export interface FinanceAPI {
   mode: ModePenyimpanan;
   getAll(): Promise<AppData>;
+  login(sandi: string): Promise<boolean>;
   createTransaksi(t: Transaksi): Promise<void>;
   updateTransaksi(input: Partial<Transaksi> & { id: string }): Promise<void>;
   deleteTransaksi(id: string): Promise<void>;
@@ -90,16 +112,39 @@ async function postgresMode(): Promise<FinanceAPI> {
     params?: string
   ): Promise<unknown> => {
     const init: RequestInit = { method };
+    const hdrs: Record<string, string> = {};
+    const token = ambilToken();
+    if (token) hdrs["Authorization"] = `Bearer ${token}`;
     if (body !== undefined) {
-      init.headers = { "Content-Type": "application/json" };
+      hdrs["Content-Type"] = "application/json";
       init.body = JSON.stringify(body);
     }
+    if (Object.keys(hdrs).length > 0) init.headers = hdrs;
     const res = await apiFetch(`/api/${path}${params ? `?${params}` : ""}`, init);
     return res;
   };
 
   return {
     mode: "postgres",
+    async login(sandi) {
+      try {
+        const res = await fetch("/api/auth", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sandi }),
+          signal: AbortSignal.timeout(8000),
+        });
+        if (!res.ok) return false;
+        const j = (await res.json()) as { ok?: boolean; token?: string };
+        if (j.ok && j.token) {
+          simpanToken(j.token);
+          return true;
+        }
+        return false;
+      } catch {
+        return false;
+      }
+    },
     async getAll() {
       const res = await apiFetch("/api/data");
       return res as AppData;
@@ -160,6 +205,9 @@ export async function buatAPI(): Promise<FinanceAPI> {
 
   return {
     mode,
+    async login(sandi) {
+      return cocokKataSandi(sandi, ambilDataLokal().pengaturan.kataSandi || "");
+    },
     async getAll() {
       return ambilDataLokal();
     },

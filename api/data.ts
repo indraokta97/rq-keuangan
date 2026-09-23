@@ -29,6 +29,7 @@ export async function GET(): Promise<Response> {
       },
     });
   } catch (e) {
-    return resErr(e instanceof Error ? e.message : "Gagal membaca data");
+    console.error("data GET:", e);
+    return resErr("Terjadi kesalahan server");
   }
 }

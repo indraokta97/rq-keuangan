@@ -111,7 +111,6 @@ export function PengaturanPage() {
         saldoAwal: saldo,
         tahunMulai: tahunVal,
         catatanBulanan: true,
-        kataSandi: data.pengaturan.kataSandi || "",
       });
       setNotif("Pengaturan tersimpan.");
       setTimeout(() => setNotif(null), 3000);

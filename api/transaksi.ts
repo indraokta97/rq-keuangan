@@ -1,4 +1,5 @@
 import { pastikanTabel, resErr, resJson, siapPakai, sql } from "./_lib/db.js";
+import { resTolak, tokenSah } from "./_lib/auth.js";
 
 export const config = { runtime: "nodejs" };
 
@@ -19,6 +20,7 @@ function bacaBody(req: Request): Promise<TipePayload> {
 
 export async function POST(req: Request): Promise<Response> {
   if (!siapPakai()) return resErr("Database belum dihubungkan", 503);
+  if (!tokenSah(req)) return resTolak();
   const p = await bacaBody(req);
   if (!p.id || !p.tipe || !p.jumlah) return resErr("Data transaksi tidak lengkap", 400);
 
@@ -42,12 +44,14 @@ export async function POST(req: Request): Promise<Response> {
     `;
     return resJson({ ok: true });
   } catch (e) {
-    return resErr(e instanceof Error ? e.message : "Gagal menyimpan");
+    console.error("transaksi POST:", e);
+    return resErr("Terjadi kesalahan server");
   }
 }
 
 export async function PUT(req: Request): Promise<Response> {
   if (!siapPakai()) return resErr("Database belum dihubungkan", 503);
+  if (!tokenSah(req)) return resTolak();
   const url = new URL(req.url);
   const id = url.searchParams.get("id");
   const p = await bacaBody(req);
@@ -81,12 +85,14 @@ export async function PUT(req: Request): Promise<Response> {
     `;
     return resJson({ ok: true });
   } catch (e) {
-    return resErr(e instanceof Error ? e.message : "Gagal memperbarui");
+    console.error("transaksi PUT:", e);
+    return resErr("Terjadi kesalahan server");
   }
 }
 
 export async function DELETE(req: Request): Promise<Response> {
   if (!siapPakai()) return resErr("Database belum dihubungkan", 503);
+  if (!tokenSah(req)) return resTolak();
   const url = new URL(req.url);
   const id = url.searchParams.get("id");
   if (!id) return resErr("Parameter id wajib ada", 400);
@@ -96,6 +102,7 @@ export async function DELETE(req: Request): Promise<Response> {
     await sql`DELETE FROM transaksi WHERE id = ${id}`;
     return resJson({ ok: true });
   } catch (e) {
-    return resErr(e instanceof Error ? e.message : "Gagal menghapus");
+    console.error("transaksi DELETE:", e);
+    return resErr("Terjadi kesalahan server");
   }
 }

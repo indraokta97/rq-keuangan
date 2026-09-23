@@ -1,4 +1,5 @@
 import { pastikanTabel, resErr, resJson, siapPakai, sql } from "./_lib/db.js";
+import { resTolak, tokenSah } from "./_lib/auth.js";
 
 export const config = { runtime: "nodejs" };
 
@@ -20,6 +21,7 @@ interface AppDataPayload {
 
 export async function POST(req: Request): Promise<Response> {
   if (!siapPakai()) return resErr("Database belum dihubungkan", 503);
+  if (!tokenSah(req)) return resTolak();
   const d = (await req.json().catch(() => ({}))) as AppDataPayload;
   if (!Array.isArray(d.kategori) || !Array.isArray(d.transaksi)) {
     return resErr("Isi backup tidak lengkap", 400);
@@ -55,6 +57,7 @@ export async function POST(req: Request): Promise<Response> {
 
     return resJson({ ok: true, jumlahTransaksi: d.transaksi.length });
   } catch (e) {
-    return resErr(e instanceof Error ? e.message : "Gagal memulihkan backup");
+    console.error("backup POST:", e);
+    return resErr("Terjadi kesalahan server");
   }
 }

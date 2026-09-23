@@ -1,4 +1,5 @@
 import { put } from "@vercel/blob";
+import { resTolak, tokenSah } from "./_lib/auth.js";
 
 export const config = { runtime: "nodejs" };
 
@@ -12,6 +13,7 @@ function resJson(body: unknown, status = 200): Response {
 const MAKS = 6 * 1024 * 1024;
 
 export async function POST(req: Request): Promise<Response> {
+  if (!tokenSah(req)) return resTolak();
   const token = process.env.BLOB_READ_WRITE_TOKEN;
   if (!token) {
     return resJson({ error: "Upload foto belum diaktifkan. Hubungkan Vercel Blob ke proyek ini." }, 501);
@@ -40,6 +42,7 @@ export async function POST(req: Request): Promise<Response> {
     });
     return resJson({ url });
   } catch (e) {
-    return resJson({ error: e instanceof Error ? e.message : "Gagal mengunggah foto." }, 500);
+    console.error("upload POST:", e);
+    return resJson({ error: "Gagal mengunggah foto." }, 500);
   }
 }

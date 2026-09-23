@@ -124,22 +124,81 @@ export function bulanSebelumnya(kunci: string, nBulan = 1): string {
 
 const TEKS_ENC = new TextEncoder();
 
-/** Hash SHA-256 (hex) untuk kata sandi pengelola. */
+const ITERASI_PBKDF2 = 120_000;
+
+function keHex(byt: Uint8Array): string {
+  return Array.from(byt)
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+function dariHex(hex: string): Uint8Array<ArrayBuffer> {
+  const pasang = (hex.match(/../g) ?? []).map((h) => parseInt(h, 16));
+  const out = new Uint8Array(pasang.length);
+  out.set(pasang);
+  return out;
+}
+
+async function sha256Hex(s: string): Promise<string> {
+  const buf = await crypto.subtle.digest("SHA-256", TEKS_ENC.encode(s));
+  return keHex(new Uint8Array(buf as ArrayBuffer));
+}
+
+/** Hash kata sandi (PBKDF2-SHA256 + salt). Format: `pbkdf2$iterasi$salt$hash`. */
 export async function hashSandi(s: string): Promise<string> {
-  const data = TEKS_ENC.encode(s);
   if (typeof crypto !== "undefined" && crypto.subtle) {
-    const buf = await crypto.subtle.digest("SHA-256", data);
-    return Array.from(new Uint8Array(buf))
-      .map((b) => b.toString(16).padStart(2, "0"))
-      .join("");
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    const kunci = await crypto.subtle.importKey("raw", TEKS_ENC.encode(s), "PBKDF2", false, ["deriveBits"]);
+    const bit = await crypto.subtle.deriveBits({ name: "PBKDF2", salt, iterations: ITERASI_PBKDF2, hash: "SHA-256" }, kunci, 256);
+    return `pbkdf2$${ITERASI_PBKDF2}$${keHex(salt)}$${keHex(new Uint8Array(bit as ArrayBuffer))}`;
   }
-  // fallback sederhana bila Web Crypto tidak tersedia (konteks non-secure)
+  // fallback hanya untuk konteks non-secure tanpa Web Crypto
   let h = 0x811c9dc5;
-  for (const b of data) {
+  for (const b of TEKS_ENC.encode(s)) {
     h ^= b;
     h = Math.imul(h, 0x01000193);
   }
   return `f-${(h >>> 0).toString(16)}-${s.length}`;
+}
+
+function bandingHex(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let beda = 0;
+  for (let i = 0; i < a.length; i++) if (a.charCodeAt(i) !== b.charCodeAt(i)) beda++;
+  return beda === 0;
+}
+
+/** Cocokkan kata sandi dengan hash tersimpan (mendukung PBKDF2 baru, SHA-256 lama, dan fallback). */
+export async function cocokKataSandi(s: string, hash: string): Promise<boolean> {
+  if (!hash || typeof s !== "string") return false;
+  if (typeof crypto === "undefined" || !crypto.subtle) return false;
+
+  if (hash.startsWith("pbkdf2$")) {
+    const [aw, itStr, saltHex, hashHex] = hash.split("$");
+    if (aw !== "pbkdf2" || !saltHex || !hashHex) return false;
+    const iterasi = Number(itStr);
+    if (!Number.isInteger(iterasi) || iterasi < 1000 || iterasi > 10_000_000) return false;
+    if (!/^[0-9a-f]{32}$/i.test(saltHex) || !/^[0-9a-f]{64}$/i.test(hashHex)) return false;
+    const kunci = await crypto.subtle.importKey("raw", TEKS_ENC.encode(s), "PBKDF2", false, ["deriveBits"]);
+    const bit = await crypto.subtle.deriveBits(
+      { name: "PBKDF2", salt: dariHex(saltHex), iterations: iterasi, hash: "SHA-256" },
+      kunci,
+      256
+    );
+    return bandingHex(keHex(new Uint8Array(bit as ArrayBuffer)), hashHex);
+  }
+  if (/^[0-9a-f]{64}$/i.test(hash)) {
+    return bandingHex(await sha256Hex(s), hash.toLowerCase());
+  }
+  if (hash.startsWith("f-")) {
+    let hh = 0x811c9dc5;
+    for (const b of TEKS_ENC.encode(s)) {
+      hh ^= b;
+      hh = Math.imul(hh, 0x01000193);
+    }
+    return hash === `f-${(hh >>> 0).toString(16)}-${s.length}`;
+  }
+  return false;
 }
 
 export const KUNCI_SESI = "rqk::sesi";
