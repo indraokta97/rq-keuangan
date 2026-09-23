@@ -1,3 +1,5 @@
+import { ambilToken } from "./backend";
+
 const MAKS_SISI = 1600;
 const MAKS_UKURAN = 10 * 1024 * 1024;
 
@@ -58,7 +60,12 @@ export async function konversiKeWebp(
 export async function unggahBukti(blob: Blob): Promise<string> {
   const fd = new FormData();
   fd.append("file", blob, "bukti.webp");
-  const res = await fetch("/api/upload", { method: "POST", body: fd });
+  const token = ambilToken();
+  const res = await fetch("/api/upload", {
+    method: "POST",
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    body: fd,
+  });
   if (!res.ok) {
     let pesan = `Unggah gagal (${res.status}).`;
     try {
