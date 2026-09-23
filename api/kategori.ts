@@ -17,8 +17,8 @@ async function bacaBody(req: Request): Promise<Partial<KategoriPayload>> {
 }
 
 export async function POST(req: Request): Promise<Response> {
-  if (!siapPakai()) return resErr("Database belum dihubungkan", 503);
   if (!tokenSah(req)) return resTolak();
+  if (!siapPakai()) return resErr("Database belum dihubungkan", 503);
   const p = (await bacaBody(req)) as KategoriPayload;
   if (!p.id || !p.nama || !p.tipe) return resErr("Data kategori tidak lengkap", 400);
 
@@ -36,8 +36,8 @@ export async function POST(req: Request): Promise<Response> {
 }
 
 export async function PUT(req: Request): Promise<Response> {
-  if (!siapPakai()) return resErr("Database belum dihubungkan", 503);
   if (!tokenSah(req)) return resTolak();
+  if (!siapPakai()) return resErr("Database belum dihubungkan", 503);
   const url = new URL(req.url);
   const id = url.searchParams.get("id");
   const p = await bacaBody(req);
@@ -66,8 +66,8 @@ export async function PUT(req: Request): Promise<Response> {
 }
 
 export async function DELETE(req: Request): Promise<Response> {
-  if (!siapPakai()) return resErr("Database belum dihubungkan", 503);
   if (!tokenSah(req)) return resTolak();
+  if (!siapPakai()) return resErr("Database belum dihubungkan", 503);
   const url = new URL(req.url);
   const id = url.searchParams.get("id");
   if (!id) return resErr("Parameter id wajib ada", 400);
