@@ -1,4 +1,4 @@
-import { pastikanTabel, resErr, resJson, siapPakai, sql } from "./_lib/db";
+import { pastikanTabel, resErr, resJson, siapPakai, sql } from "./_lib/db.js";
 
 export const config = { runtime: "nodejs" };
 

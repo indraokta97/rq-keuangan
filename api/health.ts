@@ -2,7 +2,7 @@ export const config = { runtime: "nodejs" };
 
 export async function GET(): Promise<Response> {
   try {
-    const db = await import("./_lib/db");
+    const db = await import("./_lib/db.js");
     const backend = db.siapPakai() ? "postgres" : "local";
     return db.resJson({ ok: true, backend, waktu: new Date().toISOString() });
   } catch (e) {

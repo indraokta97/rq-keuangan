@@ -1,4 +1,4 @@
-import { resErr, resJson, siapPakai, tulisPengaturan } from "./_lib/db";
+import { resErr, resJson, siapPakai, tulisPengaturan } from "./_lib/db.js";
 
 export const config = { runtime: "nodejs" };
 
