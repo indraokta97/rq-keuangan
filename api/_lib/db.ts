@@ -1,12 +1,20 @@
 import { neon } from "@neondatabase/serverless";
 
-const url =
+const url = (
   process.env.DATABASE_URL ??
   process.env.POSTGRES_URL ??
   process.env.DATABASE_URL_UNPOOLED ??
-  process.env.PGURI;
+  process.env.PGURI
+)?.trim();
 
-export const sql = url ? neon(url) : null;
+export const sql = (() => {
+  if (!url) return null;
+  try {
+    return neon(url);
+  } catch {
+    return null;
+  }
+})();
 
 export function siapPakai(): boolean {
   return !!sql;
