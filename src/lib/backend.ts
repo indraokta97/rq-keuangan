@@ -44,16 +44,17 @@ function dataKosong(): AppData {
   };
 }
 
-async function apiFetch(path: string, init?: RequestInit): Promise<unknown> {
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), 8000);
+async function apiFetch(path: string, init?: RequestInit, batasMs = 25000): Promise<unknown> {
   try {
-    const res = await fetch(path, { ...init, signal: ctrl.signal });
+    const res = await fetch(path, { ...init, signal: AbortSignal.timeout(batasMs) });
     if (!res.ok) throw new Error(`API ${res.status}`);
     if (res.status === 204) return null;
     return res.json();
-  } finally {
-    clearTimeout(timer);
+  } catch (e) {
+    if (e instanceof DOMException && (e.name === "TimeoutError" || e.name === "AbortError")) {
+      throw new Error("Waktu permintaan habis. Coba lagi.");
+    }
+    throw e;
   }
 }
 
@@ -132,7 +133,7 @@ async function postgresMode(): Promise<FinanceAPI> {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ sandi }),
-          signal: AbortSignal.timeout(8000),
+          signal: AbortSignal.timeout(25000),
         });
         if (!res.ok) return false;
         const j = (await res.json()) as { ok?: boolean; token?: string };
@@ -184,7 +185,7 @@ async function cekBackend(): Promise<ModePenyimpanan> {
   const cached = localStorage.getItem(KUNCI_MODE);
   if (cached === "postgres") return "postgres";
   try {
-    const res = await fetch("/api/health", { signal: AbortSignal.timeout(6000) });
+    const res = await fetch("/api/health", { signal: AbortSignal.timeout(12000) });
     if (res.ok) {
       const j = (await res.json()) as { backend?: string };
       if (j.backend === "postgres") {
