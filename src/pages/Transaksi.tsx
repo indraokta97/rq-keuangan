@@ -225,7 +225,7 @@ export function TransaksiPage() {
                   <th scope="col" className="px-5 py-3.5 font-semibold">Keterangan</th>
                   <th scope="col" className="px-5 py-3.5 font-semibold">Kategori</th>
                   <th scope="col" className="px-5 py-3.5 text-right font-semibold">Jumlah</th>
-                  {!readOnly ? <th scope="col" className="px-5 py-3.5" aria-label="Aksi" /> : null}
+                  <th scope="col" className="px-5 py-3.5" aria-label="Aksi" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">
@@ -254,38 +254,40 @@ export function TransaksiPage() {
                       <td className="px-5 py-3.5 text-right">
                         <ChipJumlah tipe={jenis} jumlah={t.jumlah} />
                       </td>
-                      {!readOnly ? (
-                        <td className="px-5 py-3.5 text-right">
-                          <div className="flex justify-end gap-1">
-                            {t.bukti ? (
-                              <button
-                                type="button"
-                                onClick={() => setLihatBukti(t)}
-                                aria-label={`Lihat foto bukti ${t.keterangan}`}
-                                className="rounded-lg p-2 text-mute transition hover:bg-brand-soft hover:text-brand-deep"
-                              >
-                                <IKON_UI.lihat className="h-4 w-4" aria-hidden="true" />
-                              </button>
-                            ) : null}
+                      <td className="px-5 py-3.5 text-right">
+                        <div className="flex justify-end gap-1">
+                          {t.bukti ? (
                             <button
                               type="button"
-                              onClick={() => mulaiEdit(t)}
-                              aria-label={`Ubah catatan ${t.keterangan}`}
+                              onClick={() => setLihatBukti(t)}
+                              aria-label={`Lihat foto bukti ${t.keterangan}`}
                               className="rounded-lg p-2 text-mute transition hover:bg-brand-soft hover:text-brand-deep"
                             >
-                              <IKON_UI.edit className="h-4 w-4" aria-hidden="true" />
+                              <IKON_UI.lihat className="h-4 w-4" aria-hidden="true" />
                             </button>
-                            <button
-                              type="button"
-                              onClick={() => setHapusId(t.id)}
-                              aria-label={`Hapus catatan ${t.keterangan}`}
-                              className="rounded-lg p-2 text-mute transition hover:bg-expense/10 hover:text-expense"
-                            >
-                              <IKON_UI.hapus className="h-4 w-4" aria-hidden="true" />
-                            </button>
-                          </div>
-                        </td>
-                      ) : null}
+                          ) : null}
+                          {!readOnly ? (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => mulaiEdit(t)}
+                                aria-label={`Ubah catatan ${t.keterangan}`}
+                                className="rounded-lg p-2 text-mute transition hover:bg-brand-soft hover:text-brand-deep"
+                              >
+                                <IKON_UI.edit className="h-4 w-4" aria-hidden="true" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setHapusId(t.id)}
+                                aria-label={`Hapus catatan ${t.keterangan}`}
+                                className="rounded-lg p-2 text-mute transition hover:bg-expense/10 hover:text-expense"
+                              >
+                                <IKON_UI.hapus className="h-4 w-4" aria-hidden="true" />
+                              </button>
+                            </>
+                          ) : null}
+                        </div>
+                      </td>
                     </tr>
                   );
                 })}
@@ -315,7 +317,7 @@ export function TransaksiPage() {
                   </div>
                   <div className="shrink-0 text-right">
                     <ChipJumlah tipe={t.tipe} jumlah={t.jumlah} />
-                    {!readOnly ? (
+                    {t.bukti || !readOnly ? (
                       <div className="mt-1 flex items-center justify-end gap-0.5">
                         {t.bukti ? (
                           <button
@@ -327,22 +329,26 @@ export function TransaksiPage() {
                             <IKON_UI.lihat className="h-4 w-4" aria-hidden="true" />
                           </button>
                         ) : null}
-                        <button
-                          type="button"
-                          onClick={() => mulaiEdit(t)}
-                          aria-label={`Ubah catatan ${t.keterangan}`}
-                          className="rounded p-1 text-mute hover:text-brand-deep"
-                        >
-                          <IKON_UI.edit className="h-4 w-4" aria-hidden="true" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setHapusId(t.id)}
-                          aria-label={`Hapus catatan ${t.keterangan}`}
-                          className="rounded p-1 text-mute hover:text-expense"
-                        >
-                          <IKON_UI.hapus className="h-4 w-4" aria-hidden="true" />
-                        </button>
+                        {!readOnly ? (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => mulaiEdit(t)}
+                              aria-label={`Ubah catatan ${t.keterangan}`}
+                              className="rounded p-1 text-mute hover:text-brand-deep"
+                            >
+                              <IKON_UI.edit className="h-4 w-4" aria-hidden="true" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setHapusId(t.id)}
+                              aria-label={`Hapus catatan ${t.keterangan}`}
+                              className="rounded p-1 text-mute hover:text-expense"
+                            >
+                              <IKON_UI.hapus className="h-4 w-4" aria-hidden="true" />
+                            </button>
+                          </>
+                        ) : null}
                       </div>
                     ) : null}
                   </div>
