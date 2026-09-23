@@ -146,7 +146,7 @@ export function TransaksiPage() {
             Keluar <span className="num font-bold text-expense">{formatRp(totalKeluar)}</span>
           </span>
           <span>
-            Selisih{" "}
+            Saldo kas{" "}
             <span className={`num font-bold ${totalMasuk - totalKeluar >= 0 ? "text-ink" : "text-expense"}`}>
               {formatRp(totalMasuk - totalKeluar)}
             </span>
@@ -178,7 +178,7 @@ export function TransaksiPage() {
                 { l: "Masuk", v: formatRp(totalMasuk), c: "text-brand" },
                 { l: "Keluar", v: formatRp(totalKeluar), c: "text-expense" },
                 {
-                  l: "Selisih",
+                  l: "Saldo kas",
                   v: formatRp(totalMasuk - totalKeluar),
                   c: totalMasuk - totalKeluar >= 0 ? "text-ink" : "text-expense",
                 },

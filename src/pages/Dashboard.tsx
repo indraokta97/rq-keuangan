@@ -139,54 +139,39 @@ export function Dashboard() {
     <div className="mx-auto flex max-w-6xl flex-col gap-5">
       {/* Kartu statistik: Saldo kas di tengah, masuk/keluar dua kolom */}
       <div className="grid grid-cols-1 gap-4">
-        <StatCard
-          utama
-          label="Saldo kas"
-          nilai={formatRp(saldo)}
-          sub="Kas awal + pemasukan − pengeluaran"
-        />
+        <StatCard utama label="Saldo kas" nilai={formatRp(saldo)} />
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <StatCard
-            label="Pemasukan"
-            nilai={formatRp(masukTotal)}
-            ikon={<IKON_UI.naik className="h-4 w-4" aria-hidden="true" />}
-            warna="text-brand"
-          />
-          <StatCard
-            label="Pengeluaran"
-            nilai={formatRp(keluarTotal)}
-            ikon={<IKON_UI.turun className="h-4 w-4" aria-hidden="true" />}
-            warna="text-expense"
-          />
+          <StatCard label="Pemasukan" nilai={formatRp(masukTotal)} warna="text-brand" />
+          <StatCard label="Pengeluaran" nilai={formatRp(keluarTotal)} warna="text-expense" />
         </div>
       </div>
 
       {/* Grafik */}
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
         <div className="card flex flex-col p-5 lg:col-span-2">
-          <div className="mb-1 flex flex-wrap items-start justify-between gap-2">
-            <div>
-              <h2 className="text-sm font-bold text-ink">Arus kas</h2>
-              <p className="mt-0.5 text-xs text-mute">
+          <div className="mb-1 flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <h2 className="truncate text-sm font-bold text-ink">Arus kas</h2>
+              <p className="mt-0.5 truncate text-xs text-mute">
                 {jangkauan === "all" ? "Seluruh riwayat sejak awal." : `${jangkauan} bulan terakhir.`}
               </p>
             </div>
-            <div className="flex flex-col items-end gap-2">
-              <select
-                className="input w-auto min-w-[130px] py-1.5 text-xs font-semibold"
-                aria-label="Jangkauan grafik arus kas"
-                value={jangkauan}
-                onChange={(e) => setJangkauan(e.target.value as typeof jangkauan)}
-              >
-                <option value="all">Semua waktu</option>
-                <option value="3">3 bulan terakhir</option>
-                <option value="6">6 bulan terakhir</option>
-                <option value="12">12 bulan terakhir</option>
-              </select>
-              <LegendaArusKas />
-            </div>
+            <select
+              className="input w-auto min-w-[120px] shrink-0 py-1.5 text-xs font-semibold"
+              aria-label="Jangkauan grafik arus kas"
+              value={jangkauan}
+              onChange={(e) => setJangkauan(e.target.value as typeof jangkauan)}
+            >
+              <option value="all">Semua waktu</option>
+              <option value="3">3 bulan</option>
+              <option value="6">6 bulan</option>
+              <option value="12">12 bulan</option>
+            </select>
           </div>
-          <div className="mt-4">
+          <div className="mt-2 flex items-center justify-center">
+            <LegendaArusKas />
+          </div>
+          <div className="mt-3">
             <GrafikArusKas data={seri} />
           </div>
         </div>

@@ -138,14 +138,12 @@ export function StatCard({
   nilai,
   sub,
   utama = false,
-  ikon,
   warna = "text-ink",
 }: {
   label: string;
   nilai: string;
   sub?: ReactNode;
   utama?: boolean;
-  ikon?: ReactNode;
   warna?: string;
 }) {
   if (utama) {
@@ -165,17 +163,7 @@ export function StatCard({
   }
   return (
     <div className="card p-5">
-      <div className="flex items-center gap-2.5">
-        {ikon ? (
-          <span
-            className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
-            style={{ background: `${warna === "text-brand" ? "#0e9f6e" : warna === "text-expense" ? "#d64545" : "#e9e9e8"}1f`, color: warna === "text-brand" ? "#0e9f6e" : warna === "text-expense" ? "#d64545" : "#6e6e73" }}
-          >
-            {ikon}
-          </span>
-        ) : null}
-        <p className="truncate text-xs font-semibold uppercase tracking-wider text-mute">{label}</p>
-      </div>
+      <p className="truncate text-xs font-semibold uppercase tracking-wider text-mute">{label}</p>
       <p className={`num mt-3 truncate text-2xl font-extrabold leading-tight ${warna}`}>{nilai}</p>
       {sub ? <div className="mt-1.5 text-xs text-mute">{sub}</div> : null}
     </div>

@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 import { IKON_UI } from "./icons";
 import { Modal } from "./ui";
@@ -59,6 +59,13 @@ function NavList({ tampilkanLabel }: { tampilkanLabel: boolean }) {
 
 export function Layout({ children }: { children: ReactNode }) {
   const { error, tolakError, readOnly, terkunci, terbukaKunci, hashLihat, bukaKunci } = useFinance();
+
+  useEffect(() => {
+    const cegahKlikKanan = (e: MouseEvent) => e.preventDefault();
+    window.addEventListener("contextmenu", cegahKlikKanan);
+    return () => window.removeEventListener("contextmenu", cegahKlikKanan);
+  }, []);
+
   const rute = useRoute();
   const judulHalaman = useMemo(() => SET_RUTE.find((s) => s.rute === rute), [rute]);
   const daftarNav = (readOnly ? ["dashboard", "transaksi"] : Object.keys(LABEL_RUTE)) as Route[];
@@ -211,6 +218,7 @@ export function Layout({ children }: { children: ReactNode }) {
         judul="Masuk sebagai pengelola"
         subjudul="Masukkan kata sandi untuk mengelola data kas."
         lebar="max-w-sm"
+        pusat
       >
         <form onSubmit={cobaBuka} className="space-y-4">
           <label className="flex flex-col gap-1.5 text-sm font-semibold">
