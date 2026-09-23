@@ -137,11 +137,28 @@ export function Dashboard() {
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-5">
-      {/* Kartu statistik */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <StatCard utama label="Saldo kas" nilai={formatRp(saldo)} />
-        <StatCard label="Pemasukan" nilai={formatRp(masukTotal)} />
-        <StatCard label="Pengeluaran" nilai={formatRp(keluarTotal)} />
+      {/* Kartu statistik: Saldo kas di tengah, masuk/keluar dua kolom */}
+      <div className="grid grid-cols-1 gap-4">
+        <StatCard
+          utama
+          label="Saldo kas"
+          nilai={formatRp(saldo)}
+          sub="Kas awal + pemasukan − pengeluaran"
+        />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <StatCard
+            label="Pemasukan"
+            nilai={formatRp(masukTotal)}
+            ikon={<IKON_UI.naik className="h-4 w-4" aria-hidden="true" />}
+            warna="text-brand"
+          />
+          <StatCard
+            label="Pengeluaran"
+            nilai={formatRp(keluarTotal)}
+            ikon={<IKON_UI.turun className="h-4 w-4" aria-hidden="true" />}
+            warna="text-expense"
+          />
+        </div>
       </div>
 
       {/* Grafik */}

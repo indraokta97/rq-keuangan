@@ -138,28 +138,45 @@ export function StatCard({
   nilai,
   sub,
   utama = false,
+  ikon,
+  warna = "text-ink",
 }: {
   label: string;
   nilai: string;
   sub?: ReactNode;
   utama?: boolean;
+  ikon?: ReactNode;
+  warna?: string;
 }) {
   if (utama) {
     return (
       <div className="card relative overflow-hidden border-0">
         <div className="absolute inset-0" style={{ background: "linear-gradient(135deg,#09805a 0%,#0e9f6e 55%,#12a98b 100%)" }} />
-        <div className="relative p-5 text-white">
+        <div className="absolute inset-x-0 top-0 h-px bg-white/25" aria-hidden="true" />
+        <div className="relative flex flex-col items-center px-5 py-6 text-center text-white">
           <p className="text-xs font-semibold uppercase tracking-wider text-white/75">{label}</p>
-          <p className="num mt-3 truncate text-xl font-bold leading-tight sm:text-2xl">{nilai}</p>
-          {sub ? <p className="mt-1.5 text-xs text-white/75">{sub}</p> : null}
+          <p className="num mt-2 max-w-full text-3xl font-extrabold leading-tight tracking-tight drop-shadow-sm sm:text-4xl">
+            {nilai}
+          </p>
+          {sub ? <p className="mt-2 text-xs text-white/80">{sub}</p> : null}
         </div>
       </div>
     );
   }
   return (
     <div className="card p-5">
-      <p className="text-xs font-semibold uppercase tracking-wider text-mute">{label}</p>
-      <p className="num mt-3 truncate text-xl font-bold leading-tight text-ink sm:text-2xl">{nilai}</p>
+      <div className="flex items-center gap-2.5">
+        {ikon ? (
+          <span
+            className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
+            style={{ background: `${warna === "text-brand" ? "#0e9f6e" : warna === "text-expense" ? "#d64545" : "#e9e9e8"}1f`, color: warna === "text-brand" ? "#0e9f6e" : warna === "text-expense" ? "#d64545" : "#6e6e73" }}
+          >
+            {ikon}
+          </span>
+        ) : null}
+        <p className="truncate text-xs font-semibold uppercase tracking-wider text-mute">{label}</p>
+      </div>
+      <p className={`num mt-3 truncate text-2xl font-extrabold leading-tight ${warna}`}>{nilai}</p>
       {sub ? <div className="mt-1.5 text-xs text-mute">{sub}</div> : null}
     </div>
   );
@@ -179,7 +196,7 @@ export function Kosong({ ikon, judul, pesan, aksi }: { ikon?: React.ReactNode; j
 export function ChipJumlah({ tipe, jumlah }: { tipe: "pemasukan" | "pengeluaran"; jumlah: number }) {
   const masuk = tipe === "pemasukan";
   return (
-    <span className={`num font-semibold ${masuk ? "text-brand" : "text-expense"}`}>
+    <span className={`num whitespace-nowrap text-[13px] font-semibold ${masuk ? "text-brand" : "text-expense"}`}>
       {masuk ? "+" : "−"}&nbsp;Rp{jumlah.toLocaleString("id-ID")}
     </span>
   );

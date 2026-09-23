@@ -186,7 +186,7 @@ const refresh = useCallback(async (a: FinanceAPI) => {
       <div className="grid min-h-screen place-items-center bg-paper">
         <div className="flex flex-col items-center gap-3 text-mute">
           <div className="h-9 w-9 animate-spin rounded-full border-2 border-brand/25 border-t-brand" />
-          <p className="text-sm font-medium">Membuka lemari kas…</p>
+          <p className="text-sm font-medium">Mohon tunggu…</p>
         </div>
       </div>
     );

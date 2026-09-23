@@ -186,7 +186,7 @@ export function TransaksiPage() {
             ).map((d) => (
               <div key={d.l} className="bg-paper px-2 py-2 text-center">
                 <p className="text-[11px] font-medium">{d.l}</p>
-                <p className={`num mt-0.5 break-all text-[13px] font-bold leading-tight ${d.c}`}>{d.v}</p>
+                <p className={`num mt-0.5 whitespace-nowrap text-xs font-bold leading-tight ${d.c}`}>{d.v}</p>
               </div>
             ))}
           </div>
@@ -224,7 +224,7 @@ export function TransaksiPage() {
                   <th scope="col" className="px-5 py-3.5 font-semibold">Tanggal</th>
                   <th scope="col" className="px-5 py-3.5 font-semibold">Keterangan</th>
                   <th scope="col" className="px-5 py-3.5 font-semibold">Kategori</th>
-                  <th scope="col" className="px-5 py-3.5 font-semibold">Jumlah</th>
+                  <th scope="col" className="px-5 py-3.5 text-right font-semibold">Jumlah</th>
                   {!readOnly ? <th scope="col" className="px-5 py-3.5" aria-label="Aksi" /> : null}
                 </tr>
               </thead>
@@ -251,7 +251,7 @@ export function TransaksiPage() {
                           <span className="text-xs text-mute">—</span>
                         )}
                       </td>
-                      <td className="px-5 py-3.5">
+                      <td className="px-5 py-3.5 text-right">
                         <ChipJumlah tipe={jenis} jumlah={t.jumlah} />
                       </td>
                       {!readOnly ? (

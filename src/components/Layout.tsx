@@ -57,33 +57,6 @@ function NavList({ tampilkanLabel }: { tampilkanLabel: boolean }) {
   );
 }
 
-function IndikatorPenyimpanan() {
-  const { mode } = useFinance();
-  const menu = (
-    <div className="flex items-center gap-2 rounded-xl border border-line bg-card px-3 py-2">
-      {mode === "postgres" ? <IKON_UI.cloud className="h-4 w-4 text-brand" aria-hidden="true" /> : <IKON_UI.laptop className="h-4 w-4 text-gold" aria-hidden="true" />}
-      {mode === "postgres" ? (
-        <div className="hidden min-[380px]:block">
-          <p className="text-[11px] font-bold leading-tight text-ink">Tersimpan di cloud</p>
-          <p className="leading-tight text-[10px] text-mute">Neon Postgres</p>
-        </div>
-      ) : null}
-    </div>
-  );
-
-  const tip = mode === "postgres" ? "Data aman tersinkron di database cloud." : "Data tersimpan di browser. Ekspor backup dari menu Pengaturan untuk amannya.";
-
-  return (
-    <span
-      title={tip}
-      className="cursor-help rounded-xl transition hover:ring-2 hover:ring-brand-soft"
-      aria-label={tip}
-    >
-      {menu}
-    </span>
-  );
-}
-
 export function Layout({ children }: { children: ReactNode }) {
   const { error, tolakError, readOnly, terkunci, terbukaKunci, hashLihat, bukaKunci } = useFinance();
   const rute = useRoute();
@@ -118,10 +91,6 @@ export function Layout({ children }: { children: ReactNode }) {
       <aside className="sticky top-0 hidden h-screen flex-col gap-6 border-r border-line bg-card p-4 lg:flex">
         <Logo />
         <NavList tampilkanLabel />
-        <IndikatorPenyimpanan />
-        <p className="text-[11px] leading-relaxed text-mute">
-          Dicatat dengan hati untuk amanah santri.
-        </p>
       </aside>
 
       {/* Main */}
@@ -172,14 +141,14 @@ export function Layout({ children }: { children: ReactNode }) {
           <div className="mx-4 mt-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-brand/30 bg-brand-soft px-4 py-2.5 text-sm font-semibold text-brand-deep sm:mx-6 lg:mx-8">
             <span className="flex items-center gap-2">
               <IKON_UI.lihat className="h-4 w-4 shrink-0" aria-hidden="true" />
-              Tampilan pengunjung — hanya bisa melihat. Masuk untuk mengelola.
+              Hanya bisa lihat. Masuk untuk mengelola.
             </span>
             <button
               type="button"
               className="btn-primary px-3 py-1.5 text-xs"
               onClick={() => setModalLogin(true)}
             >
-              Masuk pengelola
+              Masuk
             </button>
           </div>
         ) : readOnly ? (
