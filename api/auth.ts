@@ -32,7 +32,7 @@ export async function POST(req: Request): Promise<Response> {
 
   const p = (await req.json().catch(() => ({}))) as { sandi?: unknown };
   const sandi = typeof p.sandi === "string" ? p.sandi : "";
-  if (!sandi || sandi.length > 200) return resErr("Kata sandi tidak valid", 400);
+  if (!sandi || sandi.length < 4 || sandi.length > 200) return resErr("Kata sandi harus 4–200 karakter", 400);
 
   try {
     await pastikanTabel();
