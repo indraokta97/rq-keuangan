@@ -16,6 +16,11 @@ async function bacaBody(req: Request): Promise<Partial<KategoriPayload>> {
   return req.json().catch(() => ({}));
 }
 
+const urutanAman = (v: unknown): number => {
+  const n = Math.trunc(Number(v));
+  return Number.isFinite(n) ? Math.max(0, Math.min(9999, n)) : 0;
+};
+
 export async function POST(req: Request): Promise<Response> {
   if (!tokenSah(req)) return resTolak();
   if (!siapPakai()) return resErr("Database belum dihubungkan", 503);
@@ -26,7 +31,7 @@ export async function POST(req: Request): Promise<Response> {
     await pastikanTabel();
     await sql`
       INSERT INTO kategori (id, nama, tipe, warna, ikon, urutan)
-      VALUES (${p.id}, ${p.nama}, ${p.tipe}, ${p.warna ?? "#0E9F6E"}, ${p.ikon ?? "CircleEllipsis"}, ${p.urutan ?? 0})
+      VALUES (${p.id}, ${p.nama}, ${p.tipe}, ${p.warna ?? "#0E9F6E"}, ${p.ikon ?? "CircleEllipsis"}, ${urutanAman(p.urutan)})
     `;
     return resJson({ ok: true });
   } catch (e) {
@@ -55,7 +60,7 @@ export async function PUT(req: Request): Promise<Response> {
         tipe = ${p.tipe ?? (l.tipe as string)},
         warna = ${p.warna ?? (l.warna as string)},
         ikon = ${p.ikon ?? (l.ikon as string)},
-        urutan = ${p.urutan ?? (l.urutan as number)}
+        urutan = ${urutanAman(p.urutan ?? (l.urutan as number))}
       WHERE id = ${id}
     `;
     return resJson({ ok: true });

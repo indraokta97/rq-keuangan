@@ -19,6 +19,11 @@ interface AppDataPayload {
   pengaturan?: Record<string, unknown>;
 }
 
+const urutanAman = (v: unknown): number => {
+  const n = Math.trunc(Number(v));
+  return Number.isFinite(n) ? Math.max(0, Math.min(9999, n)) : 0;
+};
+
 export async function POST(req: Request): Promise<Response> {
   if (!tokenSah(req)) return resTolak();
   if (!siapPakai()) return resErr("Database belum dihubungkan", 503);
@@ -36,7 +41,7 @@ export async function POST(req: Request): Promise<Response> {
     for (const k of d.kategori) {
       await sql`
         INSERT INTO kategori (id, nama, tipe, warna, ikon, urutan)
-        VALUES (${k.id}, ${k.nama}, ${k.tipe}, ${k.warna}, ${k.ikon}, ${k.urutan ?? 0})
+        VALUES (${k.id}, ${k.nama}, ${k.tipe}, ${k.warna}, ${k.ikon}, ${urutanAman(k.urutan)})
       `;
     }
     for (const t of d.transaksi) {
